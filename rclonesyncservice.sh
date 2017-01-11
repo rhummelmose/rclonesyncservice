@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# globals
+service_name="rclonesyncservice"
+service_version="0.0.1"
+
+# exit codes and text
+error_number_success=0; error_text[$error_number_success]="error_number_success"
+error_number_general=1; error_text[$error_number_general]="error_number_general"
+error_number_lock_failed=2; error_text[$error_number_lock_failed]="Lock error_number_lock_failed"
+error_number_received_signal=3; error_text[$error_number_received_signal]="error_number_received_signal"
+
+# version argument
+if [[ ${@} == "-v" || ${@} == "--version" ]]; then
+    echo ${service_version}
+    exit ${error_number_success}
+fi
+
 # Use -gt 1 to consume two arguments per pass in the loop (e.g. each
 # argument has a corresponding value to go with it).
 # Use -gt 0 to consume one or more arguments per pass in the loop (e.g.
@@ -30,26 +46,18 @@ while [[ $# -gt 1 ]]; do
         ;;
         -d|--destination)
         rclone_destination="$2"
+        shift # past argument
         ;;
         *)
-        # unknown option
+        echo "[${service_name}] Ignoring invalid argument key ${argument_key} with value $2"
         ;;
     esac
     shift # past argument or value
 done
 
-# globals
-service_name="rclonesyncservice"
-
 # lock dirs/files
 lock_directory_path="${TMPDIR}/${service_name}-lock"
 pid_file_path="${lock_directory_path}/PID"
-
-# exit codes and text
-error_number_success=0; error_text[$error_number_success]="error_number_success"
-error_number_general=1; error_text[$error_number_general]="error_number_general"
-error_number_lock_failed=2; error_text[$error_number_lock_failed]="Lock error_number_lock_failed"
-error_number_received_signal=3; error_text[$error_number_received_signal]="error_number_received_signal"
 
 # argument defaults and enforcement
 if [ -z "${attempt_frequency_seconds}" ]; then
